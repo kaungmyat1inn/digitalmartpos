@@ -9,11 +9,26 @@ const { initializeAdminAccounts } = require('./utils/deployInit');
 
 const app = express();
 
+// Trust proxy (required for correct req.secure and IPs behind reverse proxies)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
   // Allow API documentation in development
   contentSecurityPolicy: config.env === 'production' ? undefined : false,
 }));
+
+// Enforce HTTPS in production if enabled
+if (config.env === 'production' && config.forceHttps) {
+  app.use((req, res, next) => {
+    if (req.secure) return next();
+    const xfProto = req.headers['x-forwarded-proto'];
+    if (xfProto && xfProto.includes('https')) return next();
+    const host = req.headers.host;
+    const url = req.originalUrl || req.url || '/';
+    return res.redirect(301, `https://${host}${url}`);
+  });
+}
 
 // CORS configuration
 app.use(cors({
@@ -115,4 +130,3 @@ process.on('SIGINT', () => {
 startServer();
 
 module.exports = app;
-

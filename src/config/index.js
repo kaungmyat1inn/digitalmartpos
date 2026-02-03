@@ -33,6 +33,9 @@ module.exports = {
     origin: process.env.CORS_ORIGIN || '*',
   },
 
+  // HTTPS enforcement
+  forceHttps: process.env.FORCE_HTTPS === 'true',
+
   // API URL
   apiUrl: process.env.API_URL || 'http://localhost:3000',
 
@@ -57,4 +60,3 @@ module.exports = {
     autoCreate: process.env.ADMIN_AUTO_CREATE !== 'false',
   },
 };
-
