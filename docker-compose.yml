@@ -1,0 +1,39 @@
+services:
+  api:
+    build: .
+    container_name: digital-mart-api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - MONGO_URI=mongodb://mongo:27017/digital_mart
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - pos-network
+
+  mongo:
+    image: mongo:7.0
+    container_name: digital-mart-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pos-network
+
+networks:
+  pos-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
