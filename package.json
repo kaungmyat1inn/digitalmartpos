@@ -1,22 +1,27 @@
 {
   "name": "digital-mart-pos",
   "version": "1.0.0",
+  "description": "Digital Mart POS - Multi-tenant Point of Sale API",
   "main": "src/app.js",
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "build": "echo 'No build step required'"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "mongoose": "^8.1.1",
-    "dotenv": "^16.4.1",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "helmet": "^7.1.0"
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.1.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
   }
 }
+

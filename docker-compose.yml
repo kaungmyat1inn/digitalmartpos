@@ -1,4 +1,7 @@
+version: "3.8"
+
 services:
+  # Node.js API
   api:
     build: .
     container_name: digital-mart-api
@@ -6,23 +9,39 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PORT=3000
       - MONGO_URI=mongodb://mongo:27017/digital_mart
+      - REDIS_URL=redis://redis:6379
+      - CORS_ORIGIN=https://app.digitalmartmm.shop
+      - API_URL=https://api.digitalmartmm.shop
     depends_on:
       mongo:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - pos-network
+    volumes:
+      - ./logs:/app/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # MongoDB Database
   mongo:
     image: mongo:7.0
     container_name: digital-mart-mongo
     restart: always
     ports:
       - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=digital_mart
     volumes:
       - mongo_data:/data/db
+      - mongo_config:/data/configdb
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -30,6 +49,34 @@ services:
       retries: 5
     networks:
       - pos-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis for rate limiting and token revocation
+  redis:
+    image: redis:7-alpine
+    container_name: digital-mart-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pos-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   pos-network:
@@ -37,3 +84,8 @@ networks:
 
 volumes:
   mongo_data:
+    driver: local
+  mongo_config:
+    driver: local
+  redis_data:
+    driver: local

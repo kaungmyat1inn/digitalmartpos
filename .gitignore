@@ -1,3 +1,50 @@
+# Dependencies
+node_modules/
+
+# Environment files
 .env
-.tools
-BLUEPRINT.md
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+
+# Build
+dist/
+build/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# MongoDB data (if running locally)
+data/db/
+
+# Docker
+.docker/
+
+# Misc
+*.pem
+*.key
+*.crt
+!.env.example
+
