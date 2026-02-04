@@ -69,6 +69,8 @@ const auditLogSchema = new mongoose.Schema({
       'SETTINGS_UPDATE',
       'EXPORT_DATA',
       'IMPORT_DATA',
+      'SYSTEM_ERROR',
+      'API_REQUEST',
     ],
   },
   resource: {
@@ -137,4 +139,3 @@ auditLogSchema.statics.log = async function(data) {
 const AuditLog = mongoose.model('AuditLog', auditLogSchema, 'audit_logs');
 
 module.exports = AuditLog;
-

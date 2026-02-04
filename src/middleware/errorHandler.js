@@ -1,4 +1,6 @@
 const config = require('../config');
+const AuditLog = require('../models/AuditLog');
+const eventBus = require('../utils/eventBus');
 
 /**
  * Custom API Error class
@@ -34,7 +36,6 @@ const ERROR_CODES = {
  * Global error handler middleware
  */
 const errorHandler = (err, req, res, next) => {
-  // Log error for debugging
   console.error('Error:', {
     message: err.message,
     code: err.code,
@@ -42,6 +43,33 @@ const errorHandler = (err, req, res, next) => {
     path: req.path,
     method: req.method,
     body: config.env === 'development' ? req.body : undefined,
+  });
+  const tenantId = req.tenantId || req.user?.tenantId || 'global';
+  const userId = req.user?.userId || 'unknown';
+  const payload = {
+    level: 'error',
+    message: err.message,
+    code: err.code,
+    stack: config.env === 'development' ? err.stack : undefined,
+    path: req.path,
+    method: req.method,
+    tenantId,
+    userId,
+    statusCode: err.statusCode || 500,
+    timestamp: new Date().toISOString(),
+  };
+  eventBus.emit('log', payload);
+  AuditLog.log({
+    userId,
+    tenantId,
+    userName: req.user?.email || null,
+    userRole: req.user?.role || 'unknown',
+    action: 'SYSTEM_ERROR',
+    resource: { type: 'system' },
+    details: { path: req.path, method: req.method, statusCode: payload.statusCode },
+    status: 'failure',
+    errorMessage: err.message,
+    metadata: { code: err.code },
   });
 
   // Handle known API errors
@@ -154,4 +182,3 @@ module.exports = {
   notFoundHandler,
   asyncHandler,
 };
-

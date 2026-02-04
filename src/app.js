@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const config = require('./config');
+const eventBus = require('./utils/eventBus');
 const { connectDatabase } = require('./config/database');
 const routes = require('./routes');
 const { errorHandler, notFoundHandler, rateLimiter, authRateLimiter } = require('./middleware');
@@ -45,6 +46,37 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Rate limiting
 app.use(rateLimiter);
 
+// Request lifecycle events
+app.use((req, res, next) => {
+  const id = `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  const start = Date.now();
+  const p = {
+    type: 'start',
+    id,
+    method: req.method,
+    path: req.originalUrl || req.url || '/',
+    tenantId: req.tenantId || null,
+    userId: req.user?.userId || null,
+    timestamp: new Date().toISOString(),
+  };
+  eventBus.emit('process', p);
+  res.on('finish', () => {
+    const payload = {
+      type: 'end',
+      id,
+      method: req.method,
+      path: req.originalUrl || req.url || '/',
+      status: res.statusCode,
+      success: res.statusCode < 400,
+      tenantId: req.tenantId || null,
+      userId: req.user?.userId || null,
+      durationMs: Date.now() - start,
+      timestamp: new Date().toISOString(),
+    };
+    eventBus.emit('process', payload);
+  });
+  next();
+});
 // Dark API - Root endpoint
 app.get('/', (req, res) => {
   res.status(200).send('Digital Mart POS API');
